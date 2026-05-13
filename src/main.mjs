@@ -44,6 +44,7 @@ import {
   enableBotAddon,
   getBotRuntimeInfo,
   isBotRunning,
+  runAddonCommand,
   startBotRuntime,
   stopAllBotRuntimes,
   stopBotRuntime,
@@ -289,6 +290,12 @@ function disableDiscordUserAddon(discordUserId, name) {
   return { ok: true, hotApplied: false };
 }
 
+async function runDiscordUserAddonCommand(discordUserId, addonName, sub, args) {
+  const bot = getDiscordLink(discordUserId);
+  if (!bot) return { ok: false, error: "no_linked_account" };
+  return runAddonCommand(bot.id, addonName, sub, args);
+}
+
 process.on("SIGINT", () => { stopAllBotRuntimes(); flushStateSync(); process.exit(0); });
 process.on("SIGTERM", () => { stopAllBotRuntimes(); flushStateSync(); process.exit(0); });
 
@@ -307,6 +314,7 @@ if (process.env.DISCORD_ENABLED === "true") {
     listDiscordUserAddons,
     enableDiscordUserAddon,
     disableDiscordUserAddon,
+    runDiscordUserAddonCommand,
   }).catch((error) => {
     console.error("[discord-control] failed to start", error);
   });
