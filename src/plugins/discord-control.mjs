@@ -582,7 +582,7 @@ export async function startDiscordControl({
         }
         const result = await runDiscordUserAddonCommand(discordUserId, addonName, sub, addonArgs);
         if (!result.ok) {
-          await message.reply(`Addon command failed: \`${result.error}\``);
+          await message.reply(`Addon command failed: ${result.error}`);
           return;
         }
         await message.reply(result.result);
