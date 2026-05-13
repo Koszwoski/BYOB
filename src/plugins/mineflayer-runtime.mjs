@@ -212,3 +212,17 @@ export function stopAllBotRuntimes() {
     stopBotRuntime(botId);
   }
 }
+
+export async function runAddonCommand(botId, addonName, sub, args) {
+  const runtime = runningBots.get(botId);
+  if (!runtime) return { ok: false, error: "bot_not_running" };
+  const instance = runtime.activeAddons.get(addonName);
+  if (!instance) return { ok: false, error: "addon_not_active" };
+  if (typeof instance.command !== "function") return { ok: false, error: "addon_has_no_commands" };
+  try {
+    const result = await instance.command(sub, args);
+    return { ok: true, result: String(result ?? "Done.") };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  }
+}
