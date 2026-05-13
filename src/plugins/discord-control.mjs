@@ -93,6 +93,7 @@ function helpText() {
     "`.addons` (or `.a`) — list available addons",
     "`.enable <name>` (or `.e`) — turn on an addon",
     "`.disable <name>` (or `.d`) — turn off an addon",
+    "`.addon <name> <sub> [args]` — run an addon-specific command",
     "",
     "**Access control** (admins / guild owner / `DISCORD_SUPERUSER_IDS`)",
     "`.allowlist on` — only allow-listed users + admins can use commands",
@@ -296,6 +297,7 @@ export async function startDiscordControl({
   listDiscordUserAddons,
   enableDiscordUserAddon,
   disableDiscordUserAddon,
+  runDiscordUserAddonCommand,
   logger = console,
 }) {
   const token = process.env.DISCORD_TOKEN;
@@ -565,6 +567,25 @@ export async function startDiscordControl({
         await message.reply(result.hotApplied
           ? `Addon \`${name}\` unloaded and disabled.`
           : `Addon \`${name}\` disabled.`);
+        return;
+      }
+
+      if (command === "addon") {
+        const [addonName, sub, ...addonArgs] = args;
+        if (!addonName || !sub) {
+          await message.reply("Usage: `.addon <name> <subcommand> [args...]`");
+          return;
+        }
+        if (!runDiscordUserAddonCommand) {
+          await message.reply("Addon command system not wired up.");
+          return;
+        }
+        const result = await runDiscordUserAddonCommand(discordUserId, addonName, sub, addonArgs);
+        if (!result.ok) {
+          await message.reply(`Addon command failed: \`${result.error}\``);
+          return;
+        }
+        await message.reply(result.result);
         return;
       }
 
