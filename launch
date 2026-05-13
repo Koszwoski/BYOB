@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# BYOB main launcher. Single Node process. No HTTP server, no website,
+# nothing the bot does not strictly need at startup.
+set -euo pipefail
+
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$APP_DIR"
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "Error: node is required. Run ./install.sh first."
+  exit 1
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  corepack enable
+  corepack prepare pnpm@9.15.9 --activate
+fi
+
+if [ ! -d node_modules ]; then
+  pnpm install
+fi
+
+if [ ! -f data/state.json ]; then
+  mkdir -p data
+  cat > data/state.json <<'JSON'
+{
+  "servers": [],
+  "bots": [],
+  "discordLinks": {}
+}
+JSON
+fi
+
+export NODE_ENV=production
+
+# Cap V8 heap so a runaway leak cannot eat the whole VPS.
+exec node --max-old-space-size=256 src/main.mjs
