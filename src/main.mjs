@@ -36,6 +36,7 @@ import {
   setDiscordServer,
   getDiscordServerId,
   updateBot,
+  initNumberedBots,
 } from "./data.mjs";
 import { listAddonsWithMeta } from "./addons/index.mjs";
 import { startDiscordControl } from "./plugins/discord-control.mjs";
@@ -303,6 +304,12 @@ const memMb = (process.memoryUsage().rss / 1024 / 1024).toFixed(1);
 console.log(`Minecraft Bot starting (idle RSS: ${memMb} MB)`);
 
 resumePersistedBots().catch((err) => console.error("[resume] failed", err));
+
+const botCount = parseInt(process.env.BOT_COUNT ?? "0", 10);
+if (botCount > 0) {
+  initNumberedBots(botCount);
+  console.log(`[init] ${botCount} numbered bot(s) ready`);
+}
 
 if (process.env.DISCORD_ENABLED === "true") {
   startDiscordControl({
