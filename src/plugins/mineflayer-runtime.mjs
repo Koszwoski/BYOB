@@ -57,7 +57,7 @@ async function loadAddonForRuntime(runtime, name, userConfig, onLog) {
   const ctx = { botId: runtime.botId, log: onLog };
   const instance = await instantiateAddon(name, runtime.mineflayerBot, userConfig, ctx);
   runtime.activeAddons.set(name, instance);
-  if (typeof instance.command === 'function') {
+  if (typeof instance.command === "function") {
     registerCommand(runtime.botId, name, instance.command.bind(instance));
   }
   return instance;
@@ -206,6 +206,7 @@ export function stopBotRuntime(botId) {
   clearInterval(runtime.callbackTimer);
   for (const name of [...runtime.activeAddons.keys()]) {
     unloadAddonFromRuntime(runtime, name);
+    unregisterCommand(botId, name);
   }
   runningBots.delete(botId);
   runtime.mineflayerBot.quit("Stopped from Minecraft Bot Panel");
