@@ -12,3 +12,7 @@ export function unregisterCommand(botId, addonName) {
 export function getCommand(botId, addonName) {
   return registry.get(botId)?.get(addonName) ?? null;
 }
+
+export function _resetForTest() {
+  registry.clear();
+}
