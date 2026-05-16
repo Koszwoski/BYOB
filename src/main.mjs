@@ -298,7 +298,7 @@ async function runDiscordUserAddonCommand(discordUserId, addonName, sub, args) {
 }
 
 function getBotCount() {
-  return parseInt(process.env.BOT_COUNT ?? "0", 10);
+  return parseInt(process.env.BOT_OFFSET ?? "0", 10) + parseInt(process.env.BOT_COUNT ?? "0", 10);
 }
 
 async function runBotActionById(botId, action) {
@@ -372,9 +372,10 @@ console.log(`Minecraft Bot starting (idle RSS: ${memMb} MB)`);
 resumePersistedBots().catch((err) => console.error("[resume] failed", err));
 
 const botCount = parseInt(process.env.BOT_COUNT ?? "0", 10);
+const botOffset = parseInt(process.env.BOT_OFFSET ?? "0", 10);
 if (botCount > 0) {
-  initNumberedBots(botCount);
-  console.log(`[init] ${botCount} numbered bot(s) ready`);
+  initNumberedBots(botCount, botOffset);
+  console.log(`[init] ${botCount} numbered bot(s) ready (offset ${botOffset})`);
 }
 
 if (process.env.DISCORD_ENABLED === "true") {

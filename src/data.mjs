@@ -4,7 +4,9 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR = path.resolve(__dirname, "../data");
-const STATE_FILE = path.join(DATA_DIR, "state.json");
+const STATE_FILE = process.env.STATE_FILE
+  ? path.resolve(process.env.STATE_FILE)
+  : path.join(DATA_DIR, "state.json");
 const PROFILES_DIR = path.join(DATA_DIR, "profiles");
 
 const defaultState = {
@@ -355,15 +357,16 @@ export function getBotByNumber(n) {
  * Existing bots are never modified.
  * @param {number} count
  */
-export function initNumberedBots(count) {
+export function initNumberedBots(count, offset = 0) {
   for (let n = 1; n <= count; n++) {
-    const exists = bots.find((b) => b.number === n);
+    const num = offset + n;
+    const exists = bots.find((b) => b.number === num);
     if (!exists) {
       const bot = {
-        id: `bot${n}`,
-        name: `bot${n}`,
-        username: `bot${n}`,
-        number: n,
+        id: `bot${num}`,
+        name: `bot${num}`,
+        username: `bot${num}`,
+        number: num,
         auth: "microsoft",
         status: "offline",
         ping: null,

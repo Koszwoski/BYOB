@@ -549,13 +549,15 @@ export async function startDiscordControl({
           channel: message.channel,
         };
 
-        const lines = await Promise.all(
+        const lines = (await Promise.all(
           targets.map((n) => {
             const bot = getBotByNumber(n);
+            if (!bot) return null;
             return runCmdForBot(n, bot, subCommand, subArgs, handlers);
           })
-        );
+        )).filter(Boolean);
 
+        if (!lines.length) return;
         await message.reply(lines.join("\n"));
         return;
       }
