@@ -1,4 +1,5 @@
 import { instantiateAddon } from "../addons/index.mjs";
+import { registerCommand, unregisterCommand, getCommand } from "./offline-command-registry.mjs";
 
 // mineflayer is the largest dependency in the bot - it eagerly pulls
 // in minecraft-data, prismarine-block, prismarine-chunk and all the
@@ -56,6 +57,9 @@ async function loadAddonForRuntime(runtime, name, userConfig, onLog) {
   const ctx = { botId: runtime.botId, log: onLog };
   const instance = await instantiateAddon(name, runtime.mineflayerBot, userConfig, ctx);
   runtime.activeAddons.set(name, instance);
+  if (typeof instance.command === 'function') {
+    registerCommand(runtime.botId, name, instance.command.bind(instance));
+  }
   return instance;
 }
 
@@ -86,6 +90,7 @@ export function disableBotAddon(botId, name, onLog = console.log) {
   const runtime = runningBots.get(botId);
   if (!runtime) return { ok: false, error: "bot_not_running" };
   const removed = unloadAddonFromRuntime(runtime, name, onLog);
+  unregisterCommand(botId, name);
   return { ok: true, wasActive: removed };
 }
 
@@ -215,7 +220,16 @@ export function stopAllBotRuntimes() {
 
 export async function runAddonCommand(botId, addonName, sub, args) {
   const runtime = runningBots.get(botId);
-  if (!runtime) return { ok: false, error: "bot_not_running" };
+  if (!runtime) {
+    const commandFn = getCommand(botId, addonName);
+    if (!commandFn) return { ok: false, error: "bot_not_running" };
+    try {
+      const result = await commandFn(sub, args);
+      return { ok: true, result: String(result ?? "Done.") };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  }
   const instance = runtime.activeAddons.get(addonName);
   if (!instance) return { ok: false, error: "addon_not_active" };
   if (typeof instance.command !== "function") return { ok: false, error: "addon_has_no_commands" };
